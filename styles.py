@@ -69,32 +69,5 @@ footer {visibility: hidden;}
     min-width: 60px;
     text-align: right;
 }
-/* --- TRADUCCIÓN FORZADA DEL FILE UPLOADER --- */
-[data-testid="stFileUploadDropzone"] div div span {
-    display: none !important;
-}
-[data-testid="stFileUploadDropzone"] div div small {
-    display: none !important;
-}
-[data-testid="stFileUploadDropzone"] button {
-    display: none !important; /* Opcional: oculta el botón "Browse files" para dejar solo la zona de arrastre */
-}
-[data-testid="stFileUploadDropzone"] div div::before {
-    content: "📁 Arrastra y suelta la foto aquí, o haz clic";
-    color: #1f2937;
-    font-weight: 600;
-    font-size: 1.1rem;
-    display: block !important;
-    visibility: visible !important;
-    margin-bottom: 5px;
-}
-[data-testid="stFileUploadDropzone"] div div::after {
-    content: "Límite: 10MB • JPG, PNG, WEBP";
-    color: #6b7280;
-    font-size: 0.85rem;
-    display: block !important;
-    visibility: visible !important;
-    margin-top: 5px;
-}
 </style>
 """
