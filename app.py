@@ -34,7 +34,7 @@ def main():
         uploaded_file = st.file_uploader("Sube una foto", type=["jpg", "png", "jpeg"])
         if uploaded_file:
             image = Image.open(uploaded_file)
-            st.image(image, use_container_width=True)
+            st.image(image, use_column_width=True)
 
     with col_der:
         if uploaded_file:
