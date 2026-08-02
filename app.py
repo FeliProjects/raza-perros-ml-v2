@@ -53,10 +53,10 @@ def main():
             col_btn1, col_btn2 = st.columns(2)
             
             # REEMPLAZA LOS NOMBRES EXACTOS DE TUS ARCHIVOS AQUÍ:
-            if col_btn1.button("🐶 Probar Ejemplo 1", use_column_width=True):
+            if col_btn1.button("🐶 Probar Ejemplo 1", use_container_width=True):
                 st.session_state.ejemplo_actual = "assets/ejemplo1_husky.jpeg" # <-- Nombre de tu imagen 1
                 st.rerun()
-            if col_btn2.button("🦴 Probar Ejemplo 2", use_column_width=True):
+            if col_btn2.button("🦴 Probar Ejemplo 2", use_container_width=True):
                 st.session_state.ejemplo_actual = "assets/ejemplo2_pug.jpeg" # <-- Nombre de tu imagen 2
                 st.rerun()
 
