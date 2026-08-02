@@ -62,7 +62,7 @@ def main():
 
         # Mostrar la imagen seleccionada (ya sea subida o ejemplo)
         if image is not None:
-            st.image(image, use_container_width=True)
+            st.image(image, use_column_width=True)
 
     with col_der:
         if image is not None:
