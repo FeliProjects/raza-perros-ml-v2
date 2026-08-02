@@ -18,6 +18,7 @@ def render_sidebar():
         st.markdown("[🔗 Mi LinkedIn](#)")
         st.markdown("[🐈 Mi GitHub](#)")
 
+
 def render_predictions_html(predictions):
     """Devuelve el string HTML con las medallas y barras de progreso completas."""
     html = '<div style="margin-top: 1rem;">'
@@ -28,17 +29,19 @@ def render_predictions_html(predictions):
         
         badge = '<span class="confidence-badge">Alta Confianza ✓</span>' if i == 0 and pct > 70 else ''
         
+        # OJO: Las etiquetas deben ir sin espacios a la izquierda para que 
+        # Streamlit (Markdown) no las convierta en bloques de código.
         html += f"""
-        <div class="prediction-card">
-            <div class="rank-icon">{rank_emoji}</div>
-            <div class="details-container">
-                <div class="breed-title">{pred['breed']} {badge}</div>
-                <div class="progress-bg">
-                    <div class="progress-fill {fill_class}" style="width: {pct}%;"></div>
-                </div>
-            </div>
-            <div class="percentage">{pct:.1f}%</div>
-        </div>
-        """
+<div class="prediction-card">
+<div class="rank-icon">{rank_emoji}</div>
+<div class="details-container">
+<div class="breed-title">{pred['breed']} {badge}</div>
+<div class="progress-bg">
+<div class="progress-fill {fill_class}" style="width: {pct}%;"></div>
+</div>
+</div>
+<div class="percentage">{pct:.1f}%</div>
+</div>
+"""
     html += '</div>'
     return html
