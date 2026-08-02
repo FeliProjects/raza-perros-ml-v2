@@ -69,5 +69,31 @@ footer {visibility: hidden;}
     min-width: 60px;
     text-align: right;
 }
+/* --- TRADUCCIÓN DEL FILE UPLOADER --- */
+[data-testid="stFileUploadDropzone"] div div::before {
+    content: "📁 Arrastra y suelta la foto de un perro aquí";
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 5px;
+}
+[data-testid="stFileUploadDropzone"] div div::after {
+    content: "Límite: 10MB por archivo • JPG, PNG, WEBP";
+    color: #6b7280;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 5px;
+}
+[data-testid="stFileUploadDropzone"] div div span {
+    display: none; /* Oculta el texto "Drag and drop file here" */
+}
+[data-testid="stFileUploadDropzone"] div div small {
+    display: none; /* Oculta el límite original en inglés */
+}
+/* Forzar que el texto del botón siga visible */
+button[data-testid="baseButton-secondary"] span {
+    display: block !important;
+}
 </style>
 """
