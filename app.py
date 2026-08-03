@@ -1,69 +1,85 @@
 # app.py
-import os
-import json
-import gc  # <-- NUEVO: Para limpiar la memoria RAM
-import numpy as np
-from PIL import Image
 import streamlit as st
+from PIL import Image
+import time
 
-# Importar solo lo necesario para ahorrar memoria
-from tensorflow import keras
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input as _mobilenet
-from tensorflow.keras.applications.resnet50 import preprocess_input as _resnet
-from tensorflow.keras.applications.efficientnet import preprocess_input as _efficientnet
-from tensorflow.keras.applications.vgg16 import preprocess_input as _vgg16
+# Importaciones locales
+from styles import CUSTOM_CSS
+from ui import render_sidebar, render_predictions_html
+from utils import load_model_and_classes, preprocess_image, predict
 
-MODEL_PATH = os.getenv("KERAS_MODEL_PATH", "mi_modelo_perros.keras")
-CLASSES_PATH = os.getenv("DOG_CLASSES_PATH", "class_names.json")
-IMAGE_SIZE = (224, 224)
-BASE_MODEL = os.getenv("BASE_MODEL", "mobilenet")
-
-PREPROCESSORS = {
-    "mobilenet": _mobilenet,
-    "resnet": _resnet,
-    "efficientnet": _efficientnet,
-    "vgg16": _vgg16,
-}
-
-def clean_breed_name(breed_string):
-    if isinstance(breed_string, str) and "-" in breed_string:
-        return breed_string.split("-")[-1].replace("_", " ").title()
-    return breed_string.replace("_", " ").title()
-
-# NUEVO: max_entries=1 asegura que Streamlit no guarde múltiples copias pesadas en RAM
-@st.cache_resource(show_spinner=False, max_entries=1)
-def load_model_and_classes():
-    model = keras.models.load_model(MODEL_PATH)
-    with open(CLASSES_PATH, "r") as f:
-        class_names = json.load(f)
-    return model, class_names
-
-def preprocess_image(image: Image.Image) -> np.ndarray:
-    if image.mode != "RGB":
-        image = image.convert("RGB")
-    image = image.resize(IMAGE_SIZE)
-    img_array = np.array(image, dtype="float32")
-    preprocess_fn = PREPROCESSORS.get(BASE_MODEL, lambda x: x / 255.0)
-    img_array = preprocess_fn(img_array)
-    return np.expand_dims(img_array, axis=0)
-
-def predict(image_array, model, class_names):
-    # NUEVO: Cambiamos model.predict() por model(..., training=False)
-    # Esto evita fugas de memoria en TensorFlow al hacer inferencias individuales
-    preds = model(image_array, training=False).numpy()[0]
+def main():
+    st.set_page_config(page_title="Dog Breed AI", page_icon="🐕", layout="wide")
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
     
-    top_indices = np.argsort(preds)[::-1][:3]
-    results = []
-    for idx in top_indices:
-        breed = clean_breed_name(class_names[idx] if isinstance(class_names, list) else str(idx))
-        results.append({"breed": breed, "probability": float(preds[idx])})
+    render_sidebar()
+
+    st.markdown("<h1 style='text-align: center; color: #1f2937;'>🐕 Identificador de Razas con IA</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6b7280; font-size: 1.1rem;'>Sube una fotografía de un perro y la red neuronal deducirá su raza al instante.</p>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    try:
+        model, class_names = load_model_and_classes()
+    except Exception as e:
+        st.error(f"Error cargando el modelo: {e}")
+        return
+
+    # ---------------------------------------------------------
+    # MANEJO DE ESTADO PARA EJEMPLOS
+    # ---------------------------------------------------------
+    if "ejemplo_actual" not in st.session_state:
+        st.session_state.ejemplo_actual = None
+
+    col_izq, col_der = st.columns([1, 1.2], gap="large")
+
+    with col_izq:
+        st.markdown("### 📸 Sube una foto")
+        uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg", "webp"], label_visibility="collapsed")
         
-    # NUEVO: Limpiamos las variables pesadas y forzamos al sistema a vaciar la RAM
-    del image_array
-    del preds
-    gc.collect()
-    
-    return results
+        # Lógica de qué imagen usar
+        if uploaded_file:
+            # Si el usuario sube algo manualmente, limpiamos la memoria del ejemplo
+            st.session_state.ejemplo_actual = None
+            image = Image.open(uploaded_file)
+        elif st.session_state.ejemplo_actual:
+            # Si no hay archivo subido pero se hizo clic en un ejemplo
+            image = Image.open(st.session_state.ejemplo_actual)
+        else:
+            image = None
+            
+        # Botones de ejemplo (Solo se muestran si no se ha subido una foto manualmente)
+        if not uploaded_file:
+            st.markdown("<p style='color: #4b5563; margin-top: 10px;'>💡 <b>¿No tienes una foto?</b> Prueba con estas:</p>", unsafe_allow_html=True)
+            col_btn1, col_btn2 = st.columns(2)
+            
+            # REEMPLAZA LOS NOMBRES EXACTOS DE TUS ARCHIVOS AQUÍ:
+            if col_btn1.button("🐶 Probar Ejemplo 1", use_container_width=True):
+                st.session_state.ejemplo_actual = "assets/ejemplo1_husky.jpeg" # <-- Nombre de tu imagen 1
+                st.rerun()
+            if col_btn2.button("🦴 Probar Ejemplo 2", use_container_width=True):
+                st.session_state.ejemplo_actual = "assets/ejemplo2_pug.jpeg" # <-- Nombre de tu imagen 2
+                st.rerun()
+
+        # Mostrar la imagen seleccionada (ya sea subida o ejemplo)
+        if image is not None:
+            st.image(image, use_column_width=True)
+
+    with col_der:
+        if image is not None:
+            st.markdown("### 📊 Análisis de la Red Neuronal")
+            with st.spinner("Procesando la anatomía del perro..."):
+                time.sleep(0.5) # Pequeña pausa intencional para UX
+                processed_img = preprocess_image(image)
+                results = predict(processed_img, model, class_names)
+                
+                # Renderizar resultados
+                st.markdown(render_predictions_html(results), unsafe_allow_html=True)
+        else:
+             st.markdown(
+                "<div style='border: 2px dashed #d1d5db; border-radius: 12px; height: 300px; display: flex; align-items: center; justify-content: center; color: #9ca3af;'>"
+                "Sube una imagen o selecciona un ejemplo para comenzar...</div>", 
+                unsafe_allow_html=True
+            )
 
 if __name__ == "__main__":
     main()
