@@ -34,7 +34,7 @@ def main():
 
     with col_izq:
         st.markdown("### 📸 Sube una foto")
-        uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg", "webp"], label_visibility="collapsed")
+        uploaded_file = st.file_uploader("Sube una foto de un perro", type=["jpg", "png", "jpeg", "webp"], label_visibility="collapsed")
         
         # Lógica de qué imagen usar
         if uploaded_file:
